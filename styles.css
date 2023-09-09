@@ -15,14 +15,15 @@
 box-shadow: 4px 4px .3em gray;
 }
 
-.language-cpp div {
-  counter-increment: linenumber;
+
+
+.code-line-container {
+  display: flex;
+  align-items: baseline;
 }
 
-.language-cpp div::before {
-  content: counter(linenumber) ":";
+.code-line-number {
+  margin-right: 10px;
   color: #506882;
   font-family: monospace; /* Change to your desired font */
-  margin-right: 1em;
 }
-

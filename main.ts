@@ -2,6 +2,51 @@ import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, Markdown
 import { EmbedCodeFileSettings, EmbedCodeFileSettingTab, DEFAULT_SETTINGS} from "./settings";
 import { analyseSrcLines, extractSrcLines} from "./utils";
 
+
+function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[]): {lines: string[], lineNumbers: number[]} {
+  let lines = fullSrc.split('\n');
+  let extractedLines: string[] = [];
+  let originalLineNumbers: number[] = [];
+  let prevLineNum = 0;
+
+  // Function to add ellipsis
+  const addEllipsis = () => {
+	extractedLines.push('....');
+    extractedLines.push('');
+    originalLineNumbers.push(-1);
+	originalLineNumbers.push(-1);
+  };
+
+  // Check for ellipsis at the beginning
+  if (!srcLinesNum.includes(1)) {
+    addEllipsis();
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let currentLineNum = i + 1;
+
+    if (srcLinesNum.includes(currentLineNum)) {
+      if (prevLineNum !== 0 && currentLineNum !== prevLineNum + 1) {
+        addEllipsis();
+      }
+      extractedLines.push(lines[i]);
+      originalLineNumbers.push(currentLineNum);
+      prevLineNum = currentLineNum;
+    }
+  }
+
+  // Check for ellipsis at the end
+  if (prevLineNum < lines.length) {
+    addEllipsis();
+  }
+
+  return {lines: extractedLines, lineNumbers: originalLineNumbers};
+}
+
+
+
+
+
 export default class EmbedCodeFile extends Plugin {
 	settings: EmbedCodeFileSettings;
 
@@ -81,15 +126,24 @@ export default class EmbedCodeFile extends Plugin {
 				srcLinesNum = analyseSrcLines(srcLinesNumString)
 			}
 
-			if (srcLinesNum.length == 0) {
-				src = fullSrc
-			} else {
-				src = extractSrcLines(fullSrc, srcLinesNum)
-			}
 
 			let title = metaYaml.TITLE
 			if (!title) {
 				title = srcPath
+			}
+
+			let lines: string[] = [];
+			let lineNumbers: number[] = [];
+
+			if (srcLinesNum.length == 0) {
+			  src = fullSrc;
+			  lines = fullSrc.split('\n');
+			  lineNumbers = Array.from({ length: lines.length }, (_, i) => i + 1);  // Generate line numbers from 1 to N
+			} else {
+			  let extracted = extractSrcLinesWithNumbers(fullSrc, srcLinesNum);
+			  lines = extracted.lines;
+			  lineNumbers = extracted.lineNumbers;
+			  src = lines.join('\n');
 			}
 
 			await MarkdownRenderer.renderMarkdown('```' + lang + '\n' + src + '\n```', el, '', this);
@@ -101,9 +155,15 @@ export default class EmbedCodeFile extends Plugin {
 				const highlightedCode = codeBlock.innerHTML;
 
 				// Split the highlighted code by new lines and wrap each line in a div
-				const wrappedHighlightedCode = highlightedCode.split('\n').map((line) => 
-					`<div class="code-line">${line}</div>`
+				const wrappedHighlightedCode = highlightedCode.split('\n').map((line, index) => 
+				  `<div class="code-line-container">
+					 <span class="code-line-number">${lineNumbers[index] !== undefined ? (lineNumbers[index] !== -1 ? `${lineNumbers[index]}:` : '  ') : ''}</span>
+					 <span class="code-line">${line}</span>
+				   </div>`
 				).join('');
+
+
+
 
 				// Replace the innerHTML of the code block with the wrapped highlighted code
 				codeBlock.innerHTML = wrappedHighlightedCode;
