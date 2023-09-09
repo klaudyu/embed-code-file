@@ -6,6 +6,43 @@ export function pathJoin(dir: string, subpath: string): string {
   return result.replace(/\\/g, "/");
 }
 
+
+function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[], showLineNumbers: boolean): {lines: string[], lineNumbers: number[]} {
+  let lines = fullSrc.split('\n');
+  let extractedLines: string[] = [];
+  let originalLineNumbers: number[] = [];
+  let prevLineNum = 0;
+
+  const addEllipsis = () => {
+    extractedLines.push('....', '');
+    originalLineNumbers.push(-1, -1);
+  };
+
+  if (!srcLinesNum.includes(1)) {
+    addEllipsis();
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let currentLineNum = i + 1;
+
+    if (srcLinesNum.includes(currentLineNum)) {
+      if (prevLineNum !== 0 && currentLineNum !== prevLineNum + 1) {
+        addEllipsis();
+      }
+      extractedLines.push(lines[i]);
+      originalLineNumbers.push(showLineNumbers ? currentLineNum : -1);
+      prevLineNum = currentLineNum;
+    }
+  }
+
+  if (prevLineNum < lines.length) {
+    addEllipsis();
+  }
+
+  return {lines: extractedLines, lineNumbers: originalLineNumbers};
+}
+
+
 export function analyseSrcLines(str: string): number[] {
 	str = str.replace(/\s*/g, "")
 	const result: number[] = []
@@ -75,3 +112,4 @@ export function extractSrcLines(fullSrc: string,  srcLinesNum: number[]): string
 
     return src
 }
+

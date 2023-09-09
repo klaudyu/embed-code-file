@@ -6,13 +6,21 @@ export interface EmbedCodeFileSettings {
 	includedLanguages: string;
 	titleBackgroundColor: string;
 	titleFontColor: string;
+	showLineNumbers: boolean;  
+	openConsole:boolean;
+	openExplorer:boolean;
 }
+
 
 export const DEFAULT_SETTINGS: EmbedCodeFileSettings = {
 	includedLanguages: 'c,cs,cpp,java,python,go,ruby,javascript,js,typescript,ts,shell,sh,bash',
 	titleBackgroundColor: "#00000020",
-	titleFontColor: ""
+	titleFontColor: "",
+	showLineNumbers: true,  // Default value
+	openConsole: false,  // Default value
+	openExplorer: false 
 }
+
 
 export class EmbedCodeFileSettingTab extends PluginSettingTab {
 	plugin: EmbedCodeFile;
@@ -58,5 +66,35 @@ export class EmbedCodeFileSettingTab extends PluginSettingTab {
 					this.plugin.settings.titleBackgroundColor = value;
 					await this.plugin.saveSettings();
 				}));
+		new Setting(containerEl)
+			.setName('Show Line Numbers')
+			.setDesc('Check this to show line numbers in the code embed.')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.showLineNumbers)
+					.onChange(async (value) => {
+						this.plugin.settings.showLineNumbers = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(containerEl)
+			.setName('Open console')
+			.setDesc('Open console when clicking on the title.')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.openConsole)
+					.onChange(async (value) => {
+						this.plugin.settings.openConsole = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(containerEl)
+			.setName('Open explorer')
+			.setDesc('Open explorer with the file selected.')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.openExplorer)
+					.onChange(async (value) => {
+						this.plugin.settings.openExplorer = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 }

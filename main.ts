@@ -1,4 +1,4 @@
-import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, MarkdownView, parseYaml, requestUrl} from 'obsidian';
+import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, MarkdownView, parseYaml, requestUrl,Platform,normalizePath} from 'obsidian';
 import { EmbedCodeFileSettings, EmbedCodeFileSettingTab, DEFAULT_SETTINGS} from "./settings";
 import { analyseSrcLines, extractSrcLines} from "./utils";
 
@@ -9,15 +9,11 @@ function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[]): {li
   let originalLineNumbers: number[] = [];
   let prevLineNum = 0;
 
-  // Function to add ellipsis
   const addEllipsis = () => {
-	extractedLines.push('....');
-    extractedLines.push('');
-    originalLineNumbers.push(-1);
-	originalLineNumbers.push(-1);
+    extractedLines.push('....', '');
+    originalLineNumbers.push(-1, -1);
   };
 
-  // Check for ellipsis at the beginning
   if (!srcLinesNum.includes(1)) {
     addEllipsis();
   }
@@ -35,16 +31,12 @@ function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[]): {li
     }
   }
 
-  // Check for ellipsis at the end
   if (prevLineNum < lines.length) {
     addEllipsis();
   }
 
   return {lines: extractedLines, lineNumbers: originalLineNumbers};
 }
-
-
-
 
 
 export default class EmbedCodeFile extends Plugin {
@@ -157,7 +149,7 @@ export default class EmbedCodeFile extends Plugin {
 				// Split the highlighted code by new lines and wrap each line in a div
 				const wrappedHighlightedCode = highlightedCode.split('\n').map((line, index) => 
 				  `<div class="code-line-container">
-					 <span class="code-line-number">${lineNumbers[index] !== undefined ? (lineNumbers[index] !== -1 ? `${lineNumbers[index]}:` : '  ') : ''}</span>
+					 <span class="code-line-number">${ this.settings.showLineNumbers?(lineNumbers[index] !== undefined ? (lineNumbers[index] !== -1 ? `${lineNumbers[index]}:` : '  ') : ''):''}</span>
 					 <span class="code-line">${line}</span>
 				   </div>`
 				).join('');
@@ -174,46 +166,107 @@ export default class EmbedCodeFile extends Plugin {
 		});
 	}
 
-addTitleLivePreview(el: HTMLElement, title: string, srcPath: string) {
-    const codeElm = el.querySelector('pre > code');
-    if (!codeElm) { return }
-    const pre = codeElm.parentElement as HTMLPreElement;
+	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string) {
+		const codeElm = el.querySelector('pre > code');
+		if (!codeElm) { return }
+		const pre = codeElm.parentElement as HTMLPreElement;
 
-	// Create a clickable div element
-	const titleDiv = document.createElement("span");
-	titleDiv.textContent = title;
-	titleDiv.className = "obsidian-embed-code-file";
-	titleDiv.style.color = "blue";  // Mimic hyperlink color
-	titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
-	titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
+		// Create a clickable div element
+		const titleDiv = document.createElement("span");
+		titleDiv.textContent = title;
+		titleDiv.className = "obsidian-embed-code-file";
+		titleDiv.style.color = "blue";  // Mimic hyperlink color
+		titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
+		titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
 
-	// Add hover behavior
-	titleDiv.addEventListener("mouseover", () => {
-		titleDiv.style.textDecoration = "none";  // Remove underline on hover
-	});
-	titleDiv.addEventListener("mouseout", () => {
-		titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
-	});
+		// Add hover behavior
+		titleDiv.addEventListener("mouseover", () => {
+			titleDiv.style.textDecoration = "none";  // Remove underline on hover
+		});
+		titleDiv.addEventListener("mouseout", () => {
+			titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
+		});
 
-	// Add click event to open the file in Obsidian or a URL in the browser
-	titleDiv.addEventListener("click", () => {
-	  if (srcPath.startsWith('http://') || srcPath.startsWith('https://')) {
-		// Open URL in the default web browser
-		require('electron').shell.openExternal(srcPath);
-	  } else {
-		// Open local file in Obsidian
-		const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
-		if (fileToOpen instanceof TFile) {
-		  this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
-		}
-	  }
-	});
-
+		// Add click event to open the file in Obsidian or a URL in the browser
+		titleDiv.addEventListener("click", () => {
+		  if (srcPath.startsWith('http://') || srcPath.startsWith('https://')) {
+			// Open URL in the default web browser
+			require('electron').shell.openExternal(srcPath);
+		  } else {
+				// Open local file in Obsidian
+				const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
+				if (fileToOpen instanceof TFile) {
+				  this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
+				  this.openFolderInExplorer(fileToOpen)
+				}
+			}
+		});
 
 	// Add the clickable div to the pre element
 	pre.prepend(titleDiv);
 
-}
+	}
+	
+
+
+	openFolderInExplorer(file: TFile) {
+		const path = require('path'); // Make sure to import the path module
+		const { exec } = require("child_process");
+	  // Get the absolute path of the folder
+	  const filePath = file.path;
+	  const fileAbsolutePath = this.getAbsolutePathOfFolder(filePath); // Renamed to avoid conflict
+	  
+	  // Get the directory name using Node.js path module
+	  const folderPath = path.dirname(fileAbsolutePath);
+
+	  // Command to open folder in Windows Explorer
+	  if (process.platform === 'win32') {
+			// For Windows
+			if (this.settings.openExplorer){
+				exec(`explorer /select,"${fileAbsolutePath}"`);
+			}
+			if (this.settings.openConsole){
+				//exec(`Start-Process powershell `);
+				//exec(`start "PowerShell" /D "${folderPath}" powershell.exe`)
+				//const folderPath = "C:\\Your\\Target\\Folder"; // Replace with your folder path
+				const driveLetter = folderPath.charAt(0);
+				exec(`start cmd.exe /K "${driveLetter}: && cd \"${folderPath}\ && powershell.exe " ; "`, (error: Error | null, stdout: string, stderr: string) => {
+				  if (error) {
+					console.error(`Error executing command: ${error}`);
+					return;
+				  }
+				  console.log(`stdout: ${stdout}`);
+				  console.log(`stderr: ${stderr}`);
+				});
+			}
+	  } else if (process.platform === 'darwin') {
+		// For macOS
+		if (this.settings.openExplorer){
+			exec(`open -R "${filePath}"`);	
+		}
+		if (this.settings.openConsole){
+			exec(`osascript -e 'tell app "Terminal" to do script "cd ${folderPath}"'`);
+		}
+	  } else {
+		// For Linux
+		if (this.settings.openExplorer){
+			exec(`nautilus "${filePath}"`);
+		}
+		if (this.settings.openConsole){
+			exec(`gnome-terminal --working-directory=${folderPath}`);
+		}
+	  }
+	}
+
+
+	getAbsolutePathOfFolder(inputpath: string): string {
+	  //@ts-ignore
+	  const outpath = normalizePath(`${this.app.vault.adapter.basePath}/${inputpath}`)
+	  if (Platform.isDesktopApp && navigator.platform === "Win32") {
+		return outpath.replace(/\//g, "\\");
+	  }
+	  return outpath;
+	}
 
 
 
