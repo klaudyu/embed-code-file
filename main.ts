@@ -178,6 +178,8 @@ export default class EmbedCodeFile extends Plugin {
 		titleDiv.style.color = "blue";  // Mimic hyperlink color
 		titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
 		titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
+		titleDiv.style.color = this.settings.titleFontColor;
+		titleDiv.style.backgroundColor = this.settings.titleBackgroundColor;
 
 		// Add hover behavior
 		titleDiv.addEventListener("mouseover", () => {
