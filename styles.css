@@ -10,3 +10,19 @@
     margin-right:-9px!important;
     margin-bottom:9px!important;
 }
+
+.block-language-embed-cpp>.language-cpp{
+box-shadow: 4px 4px .3em gray;
+}
+
+.language-cpp div {
+  counter-increment: linenumber;
+}
+
+.language-cpp div::before {
+  content: counter(linenumber) ":";
+  color: #506882;
+  font-family: monospace; /* Change to your desired font */
+  margin-right: 1em;
+}
+

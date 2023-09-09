@@ -92,18 +92,62 @@ export default class EmbedCodeFile extends Plugin {
 				title = srcPath
 			}
 
-			await MarkdownRenderer.renderMarkdown('```' + lang + '\n' + src + '\n```', el, '', this)
-			this.addTitleLivePreview(el, title);
+			await MarkdownRenderer.renderMarkdown('```' + lang + '\n' + src + '\n```', el, '', this);
+
+			// Find the rendered code block
+			const codeBlock = el.querySelector('pre > code');
+			if (codeBlock) {
+				// Get the existing highlighted code
+				const highlightedCode = codeBlock.innerHTML;
+
+				// Split the highlighted code by new lines and wrap each line in a div
+				const wrappedHighlightedCode = highlightedCode.split('\n').map((line) => 
+					`<div class="code-line">${line}</div>`
+				).join('');
+
+				// Replace the innerHTML of the code block with the wrapped highlighted code
+				codeBlock.innerHTML = wrappedHighlightedCode;
+			}
+
+			this.addTitleLivePreview(el, title,srcPath);
 		});
 	}
 
-	addTitleLivePreview(el: HTMLElement, title: string) {
-		const codeElm = el.querySelector('pre > code')
-		if (!codeElm) { return }
-		const pre = codeElm.parentElement as HTMLPreElement;
+addTitleLivePreview(el: HTMLElement, title: string, srcPath: string) {
+    const codeElm = el.querySelector('pre > code');
+    if (!codeElm) { return }
+    const pre = codeElm.parentElement as HTMLPreElement;
 
-		this.insertTitlePreElement(pre, title)
-	}
+	// Create a clickable div element
+	const titleDiv = document.createElement("span");
+	titleDiv.textContent = title;
+	titleDiv.className = "obsidian-embed-code-file";
+	titleDiv.style.color = "blue";  // Mimic hyperlink color
+	titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
+	titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
+
+	// Add hover behavior
+	titleDiv.addEventListener("mouseover", () => {
+		titleDiv.style.textDecoration = "none";  // Remove underline on hover
+	});
+	titleDiv.addEventListener("mouseout", () => {
+		titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
+	});
+
+	// Add click event to open the file in Obsidian
+	titleDiv.addEventListener("click", () => {
+		const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
+		if (fileToOpen instanceof TFile) {
+			this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
+		}
+	});
+
+	// Add the clickable div to the pre element
+	pre.prepend(titleDiv);
+
+}
+
+
 
 	addTitle(el: HTMLElement, context: MarkdownPostProcessorContext) {
 		// add some commecnt 
