@@ -170,6 +170,7 @@ export default class EmbedCodeFile extends Plugin {
 			}
 
 			this.addTitleLivePreview(el, title,srcPath);
+			el.className += ' embed-code-file-plugin';
 		});
 	}
 
@@ -194,13 +195,20 @@ addTitleLivePreview(el: HTMLElement, title: string, srcPath: string) {
 		titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
 	});
 
-	// Add click event to open the file in Obsidian
+	// Add click event to open the file in Obsidian or a URL in the browser
 	titleDiv.addEventListener("click", () => {
+	  if (srcPath.startsWith('http://') || srcPath.startsWith('https://')) {
+		// Open URL in the default web browser
+		require('electron').shell.openExternal(srcPath);
+	  } else {
+		// Open local file in Obsidian
 		const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
 		if (fileToOpen instanceof TFile) {
-			this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
+		  this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
 		}
+	  }
 	});
+
 
 	// Add the clickable div to the pre element
 	pre.prepend(titleDiv);

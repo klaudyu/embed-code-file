@@ -11,11 +11,15 @@
     margin-bottom:9px!important;
 }
 
-.block-language-embed-cpp>.language-cpp{
-box-shadow: 4px 4px .3em gray;
+code[class*="language-"], pre[class*="language-"]{
+	  border: 1px dashed  black;	 
+	  
 }
-
-
+pre[class*="language-"]{
+	margin:1em 10%;
+	box-shadow: 4px 4px .3em gray;
+	#background-color: rgba(255, 235, 200, .2)!important;
+}
 
 .code-line-container {
   display: flex;
