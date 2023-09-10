@@ -1,4 +1,6 @@
 import path from "path";
+import { normalizePath, Platform} from 'obsidian';
+
 
 export function pathJoin(dir: string, subpath: string): string {
   const result = path.join(dir, subpath);
@@ -6,8 +8,16 @@ export function pathJoin(dir: string, subpath: string): string {
   return result.replace(/\\/g, "/");
 }
 
+export function getAbsolutePathOfFolder(inputpath: string): string {
+	  //@ts-ignore
+	  const outpath = normalizePath(`${this.app.vault.adapter.basePath}/${inputpath}`)
+	  if (Platform.isDesktopApp && navigator.platform === "Win32") {
+		return outpath.replace(/\//g, "\\");
+	  }
+	  return outpath;
+	}
 
-function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[], showLineNumbers: boolean): {lines: string[], lineNumbers: number[]} {
+export function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[]): {lines: string[], lineNumbers: number[]} {
   let lines = fullSrc.split('\n');
   let extractedLines: string[] = [];
   let originalLineNumbers: number[] = [];
@@ -30,7 +40,7 @@ function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[], show
         addEllipsis();
       }
       extractedLines.push(lines[i]);
-      originalLineNumbers.push(showLineNumbers ? currentLineNum : -1);
+      originalLineNumbers.push(currentLineNum);
       prevLineNum = currentLineNum;
     }
   }
@@ -41,6 +51,7 @@ function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[], show
 
   return {lines: extractedLines, lineNumbers: originalLineNumbers};
 }
+
 
 
 export function analyseSrcLines(str: string): number[] {

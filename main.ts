@@ -1,42 +1,7 @@
 import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, MarkdownView, parseYaml, requestUrl,Platform,normalizePath} from 'obsidian';
 import { EmbedCodeFileSettings, EmbedCodeFileSettingTab, DEFAULT_SETTINGS} from "./settings";
-import { analyseSrcLines, extractSrcLines} from "./utils";
+import { analyseSrcLines, extractSrcLines,extractSrcLinesWithNumbers,getAbsolutePathOfFolder} from "./utils";
 
-
-function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[]): {lines: string[], lineNumbers: number[]} {
-  let lines = fullSrc.split('\n');
-  let extractedLines: string[] = [];
-  let originalLineNumbers: number[] = [];
-  let prevLineNum = 0;
-
-  const addEllipsis = () => {
-    extractedLines.push('....', '');
-    originalLineNumbers.push(-1, -1);
-  };
-
-  if (!srcLinesNum.includes(1)) {
-    addEllipsis();
-  }
-
-  for (let i = 0; i < lines.length; i++) {
-    let currentLineNum = i + 1;
-
-    if (srcLinesNum.includes(currentLineNum)) {
-      if (prevLineNum !== 0 && currentLineNum !== prevLineNum + 1) {
-        addEllipsis();
-      }
-      extractedLines.push(lines[i]);
-      originalLineNumbers.push(currentLineNum);
-      prevLineNum = currentLineNum;
-    }
-  }
-
-  if (prevLineNum < lines.length) {
-    addEllipsis();
-  }
-
-  return {lines: extractedLines, lineNumbers: originalLineNumbers};
-}
 
 
 export default class EmbedCodeFile extends Plugin {
@@ -47,9 +12,9 @@ export default class EmbedCodeFile extends Plugin {
 
 		this.addSettingTab(new EmbedCodeFileSettingTab(this.app, this));
 
-		this.registerMarkdownPostProcessor((element, context) => {
-			this.addTitle(element, context);
-		});
+		//this.registerMarkdownPostProcessor((element, context) => {
+		//	this.addTitle(element, context);
+		//});
 
 		// live preview renderers
 		const supportedLanguages = this.settings.includedLanguages.split(",")
@@ -216,7 +181,7 @@ export default class EmbedCodeFile extends Plugin {
 		const { exec } = require("child_process");
 	  // Get the absolute path of the folder
 	  const filePath = file.path;
-	  const fileAbsolutePath = this.getAbsolutePathOfFolder(filePath); 
+	  const fileAbsolutePath = getAbsolutePathOfFolder(filePath); 
 	  
 	  // Get the directory name using Node.js path module
 	  const folderPath = path.dirname(fileAbsolutePath);
@@ -244,7 +209,6 @@ export default class EmbedCodeFile extends Plugin {
 		    if (this.settings.openDefaultApp){
 				exec(`start "" "${fileAbsolutePath}"`);
 				//window.require('electron').shell.openPath(fileAbsolutePath);
-
 			}
 
 	  } else if (process.platform === 'darwin') {
@@ -267,14 +231,7 @@ export default class EmbedCodeFile extends Plugin {
 	}
 
 
-	getAbsolutePathOfFolder(inputpath: string): string {
-	  //@ts-ignore
-	  const outpath = normalizePath(`${this.app.vault.adapter.basePath}/${inputpath}`)
-	  if (Platform.isDesktopApp && navigator.platform === "Win32") {
-		return outpath.replace(/\//g, "\\");
-	  }
-	  return outpath;
-	}
+
 
 
 
