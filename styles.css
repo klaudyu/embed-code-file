@@ -40,8 +40,11 @@ pre[class*="language-"]{
  }
 
 .obsidian-embed-code-title-wrapper {
+	position:absolute;
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-start;
+	right:.5em;
+	bottom:.5em;
 	
 }
