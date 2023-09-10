@@ -165,29 +165,27 @@ export default class EmbedCodeFile extends Plugin {
 			
 			
 			const titleaslink=this.settings.openDefaultApp
-			this.addTitleLivePreview(pre,title, srcPath,"open",titleaslink);
+			this.addLinkLivePreview(pre       ,title, srcPath,"title","system",titleaslink);
 
 			if(this.settings.openObsidian){
-				this.addTitleLivePreview(newDiv,"💎️", srcPath,"obsidian");
+				this.addLinkLivePreview(newDiv,"💎️", srcPath,"option","obsidian");
 			}
 			if (this.settings.openConsole){
-				this.addTitleLivePreview(newDiv, "💻",srcPath,"console");
+				this.addLinkLivePreview(newDiv, "⌨️",srcPath,"option","console");
 			}
 			if (this.settings.openExplorer){
-				this.addTitleLivePreview(newDiv,"📂", srcPath,"explorer");
+				this.addLinkLivePreview(newDiv,"📂", srcPath,"option","explorer");
 			}
 			if (this.settings.openTotalCmd){
-				this.addTitleLivePreview(newDiv,"💾", srcPath,"totalcmd");
+				this.addLinkLivePreview(newDiv,"💾", srcPath,"option","totalcmd");
 			}
-			
-			//this.addTitleLivePreview(el, title,srcPath);
-		
+					
 			pre.appendChild(newDiv);
 			el.className += ' embed-code-file-plugin';
 		});
 	}
 
-	addTitleLivePreview(div: HTMLElement, title: string, srcPath: string, command: string,link:boolean = true) {
+	addLinkLivePreview(div: HTMLElement, title: string, srcPath: string, thetype: string, command: string,link:boolean = true) {
 		
 		const path = require('path'); // Make sure to import the path module
 		const { exec } = require("child_process");
@@ -221,7 +219,7 @@ export default class EmbedCodeFile extends Plugin {
 			
 			switch (command) {
 			  // Open in default app
-			  case "open":
+			  case "system":
 				switch (process.platform) {
 				  case "win32":
 					run = () => {exec(`start "" "${fileAbsolutePath}"`)};break;
@@ -264,7 +262,7 @@ export default class EmbedCodeFile extends Plugin {
 			  //open in totalcmd
 			  case "totalcmd":
 				if (process.platform == "win32"){
-					run = () => {exec(`start totalcmd "/O" "L=${fileAbsolutePath}"`);}
+					run = () => {exec(`start totalcmd "/O" "/T" "/S"  "${fileAbsolutePath}"`);}
 				}
 				break;
 			}
@@ -276,7 +274,7 @@ export default class EmbedCodeFile extends Plugin {
 		// Create a clickable div element
 		const titleDiv = document.createElement("pre");
 		titleDiv.textContent = title;
-		titleDiv.className = "obsidian-embed-code-title link "+command;
+		titleDiv.className = "obsidian-embed-code "+thetype+" "+command;
 		
 		
 
@@ -284,15 +282,21 @@ export default class EmbedCodeFile extends Plugin {
 		titleDiv.style.backgroundColor = this.settings.titleBackgroundColor;
 
 		if(link){
-			titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
+			if(thetype!="option"){
+				// Add hover behavior
+				titleDiv.addEventListener("mouseover", () => {
+					titleDiv.style.textDecoration = "none";  // Remove underline on hover
+				});
+				titleDiv.addEventListener("mouseout", () => {
+					titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
+				});
+				titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
+
+			}
+			
 			titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
-			// Add hover behavior
-			titleDiv.addEventListener("mouseover", () => {
-				titleDiv.style.textDecoration = "none";  // Remove underline on hover
-			});
-			titleDiv.addEventListener("mouseout", () => {
-				titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
-			});
+			titleDiv.setAttribute("title", "open with " + command);  // Add this line for the tooltip
+
 
 			// Add click event to open the file in Obsidian or a URL in the browser
 			titleDiv.addEventListener("click", () => {
@@ -303,7 +307,7 @@ export default class EmbedCodeFile extends Plugin {
 		// Add the clickable div to the pre element
 		 //pre.style.position = "relative";  // Make sure the parent is relative
 
-		div.insertBefore(titleDiv);
+		div.insertBefore(titleDiv,div.firstChild);
 		//this.insertTitlePreElement(pre, title)
 
 		}

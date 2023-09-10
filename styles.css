@@ -10,7 +10,6 @@
     margin-right:-9px!important;
     margin-bottom:9px!important;
 } 
-
 code[class*="language-"], pre[class*="language-"]{
 	  border: 1px dashed  black;	  
 }
@@ -31,32 +30,18 @@ pre[class*="language-"]{
   font-family: monospace; /* Change to your desired font */
 }
 
-.obsidian-embed-code-title.link {
-  position: absolute;
-  border: 1px solid grey;  
-  padding:.2em;
-  line-height:1em;	
-  bottom: 0px;
-  margin:0px!;
-  min-height:1.5em;
-}
-.obsidian-embed-code-title.link.console{
-	  right: 0;
-}
-.obsidian-embed-code-title.link.explorer{
-	  right: 2em;
-}
-.obsidian-embed-code-title.link.obsidian{
-	  right: 4em;
-}
-.obsidian-embed-code-title.link.open{
-	position: relative;
-	border: none; 
-	min-height:2em;
-	font-size:1.1em;	
-
+.obsidian-embed-code-title{
 }
 
-.obsidian-embed-code-title.link.totalcmd{
-	  right: 6em;
+ pre[class*="obsidian-embed-code"].option{
+	 border: 1px solid grey;
+	 padding:.1em;
+	 font-size:1.2em;
+ }
+
+.obsidian-embed-code-title-wrapper {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+	
 }
