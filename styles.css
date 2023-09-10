@@ -9,25 +9,50 @@
     margin-left:-9px!important;
     margin-right:-9px!important;
     margin-bottom:9px!important;
-}
+} 
 
 code[class*="language-"], pre[class*="language-"]{
-	  border: 1px dashed  black;	 
-	  
+	  border: 1px dashed  black;	  
 }
 pre[class*="language-"]{
-	margin:1em 10%;
+	margin:1em    10%!important;
 	box-shadow: 4px 4px .3em gray;
-	#background-color: rgba(255, 235, 200, .2)!important;
+	background-color: rgba(255, 235, 200, .2);
 }
 
 .code-line-container {
   display: flex;
-  align-items: baseline;
+  #align-items: baseline;
 }
 
 .code-line-number {
   margin-right: 10px;
   color: #506882;
   font-family: monospace; /* Change to your desired font */
+}
+
+.obsidian-embed-code-title.link {
+  position: absolute;
+  border: 1px solid grey;  
+  padding:.2em;
+  line-height:1em;	
+  bottom: 0px;
+  margin:0px!;
+  min-height:1.5em;
+}
+.obsidian-embed-code-title.link.console{
+	  right: 0;
+}
+.obsidian-embed-code-title.link.explorer{
+	  right: 2em;
+}
+.obsidian-embed-code-title.link.obsidian{
+	  right: 4em;
+}
+.obsidian-embed-code-title.link.open{
+	position: relative;
+	border: none; 
+	min-height:2em;
+	font-size:1.1em;	
+
 }

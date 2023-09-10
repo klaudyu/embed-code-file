@@ -149,18 +149,27 @@ export default class EmbedCodeFile extends Plugin {
 				codeBlock.innerHTML = wrappedHighlightedCode;
 			}
 			
+			/*
+			const codeElm = el.querySelector('pre > code')
+			if (!codeElm) { return }
+			const pre = codeElm.parentElement as HTMLPreElement;
+
+			this.insertTitlePreElement(pre, title)
+			*/
+			
 			const titleaslink=this.settings.openDefaultApp
-			this.addTitleLivePreview(el,title, srcPath,"open","top-left", ".3em",".3em",titleaslink);
+			this.addTitleLivePreview(el,title, srcPath,"open",titleaslink);
 
 			if(this.settings.openObsidian){
-				this.addTitleLivePreview(el,"[obsidian]", srcPath,"obsidian","bottom-right", "7em","1em",);
+				this.addTitleLivePreview(el,"💎️", srcPath,"obsidian");
 			}
 			if (this.settings.openConsole){
-				this.addTitleLivePreview(el, "[console]",srcPath,"console","bottom-right", "1em","1em");
+				this.addTitleLivePreview(el, "💻",srcPath,"console");
 			}
 			if (this.settings.openExplorer){
-				this.addTitleLivePreview(el,"[folder]", srcPath,"explorer","bottom-right", "14em","1em",);
+				this.addTitleLivePreview(el,"📂", srcPath,"explorer");
 			}
+			
 			//this.addTitleLivePreview(el, title,srcPath);
 		
 
@@ -168,8 +177,7 @@ export default class EmbedCodeFile extends Plugin {
 		});
 	}
 
-	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string, command: string,
-		corner: string, xOffset: string, yOffset: string,link:boolean = true) {
+	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string, command: string,link:boolean = true) {
 		
 		const path = require('path'); // Make sure to import the path module
 		const { exec } = require("child_process");
@@ -250,32 +258,7 @@ export default class EmbedCodeFile extends Plugin {
 		// Create a clickable div element
 		const titleDiv = document.createElement("pre");
 		titleDiv.textContent = title;
-		titleDiv.className = "obsidian-embed-code-title";
-
-		// Set CSS styles
-
-		switch (corner) {
-		case "top-left":
-		  
-		  titleDiv.style.left = xOffset;
-		  titleDiv.style.top = yOffset;
-		  break;
-		case "top-right":
-		  titleDiv.style.position = "absolute";
-		  titleDiv.style.right = xOffset;
-		  titleDiv.style.top = yOffset;
-		  break;
-		case "bottom-left":
-		titleDiv.style.position = "absolute";
-		  titleDiv.style.left = xOffset;
-		  titleDiv.style.bottom = yOffset;
-		  break;
-		case "bottom-right":
-		titleDiv.style.position = "absolute";
-		  titleDiv.style.right = xOffset;
-		  titleDiv.style.bottom = yOffset;
-		  break;
-		}
+		titleDiv.className = "obsidian-embed-code-title link "+command;
 		
 		
 
@@ -318,64 +301,6 @@ export default class EmbedCodeFile extends Plugin {
 
 		  return repoURL;
 	}
-
-	openFolderInExplorer(file: TFile) {
-		const path = require('path'); // Make sure to import the path module
-		const { exec } = require("child_process");
-	  // Get the absolute path of the folder
-	  const filePath = file.path;
-	  const fileAbsolutePath = getAbsolutePathOfFolder(filePath); 
-	  
-	  // Get the directory name using Node.js path module
-	  const folderPath = path.dirname(fileAbsolutePath);
-
-	  // Command to open folder in Windows Explorer
-	  if (process.platform === 'win32') {
-			// For Windows
-			if (this.settings.openExplorer){
-				exec(`explorer /select,"${fileAbsolutePath}"`);
-			}
-			if (this.settings.openConsole){
-				//exec(`Start-Process powershell `);
-				//exec(`start "PowerShell" /D "${folderPath}" powershell.exe`)
-				//const folderPath = "C:\\Your\\Target\\Folder"; // Replace with your folder path
-				const driveLetter = folderPath.charAt(0);
-				exec(`start cmd.exe /K "${driveLetter}: && cd \"${folderPath}\ && powershell.exe " ; "`, (error: Error | null, stdout: string, stderr: string) => {
-				  if (error) {
-					console.error(`Error executing command: ${error}`);
-					return;
-				  }
-				  console.log(`stdout: ${stdout}`);
-				  console.log(`stderr: ${stderr}`);
-				});
-			}
-		    if (this.settings.openDefaultApp){
-				exec(`start "" "${fileAbsolutePath}"`);
-				//window.require('electron').shell.openPath(fileAbsolutePath);
-			}
-
-	  } else if (process.platform === 'darwin') {
-		// For macOS
-		if (this.settings.openExplorer){
-			exec(`open -R "${filePath}"`);	
-		}
-		if (this.settings.openConsole){
-			exec(`osascript -e 'tell app "Terminal" to do script "cd ${folderPath}"'`);
-		}
-	  } else {
-		// For Linux
-		if (this.settings.openExplorer){
-			exec(`nautilus "${filePath}"`);
-		}
-		if (this.settings.openConsole){
-			exec(`gnome-terminal --working-directory=${folderPath}`);
-		}
-	  }
-	}
-
-
-
-
 
 
 	addTitle(el: HTMLElement, context: MarkdownPostProcessorContext) {
