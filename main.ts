@@ -156,40 +156,48 @@ export default class EmbedCodeFile extends Plugin {
 
 			this.insertTitlePreElement(pre, title)
 			*/
+			const codeElm = el.querySelector('pre > code');
+			if (!codeElm) { return }
+			const pre = codeElm.parentElement as HTMLPreElement;
+			
+			const newDiv  = document.createElement("div");
+			newDiv.className = "obsidian-embed-code-title-wrapper";
+			
 			
 			const titleaslink=this.settings.openDefaultApp
-			this.addTitleLivePreview(el,title, srcPath,"open",titleaslink);
+			this.addTitleLivePreview(pre,title, srcPath,"open",titleaslink);
 
 			if(this.settings.openObsidian){
-				this.addTitleLivePreview(el,"💎️", srcPath,"obsidian");
+				this.addTitleLivePreview(newDiv,"💎️", srcPath,"obsidian");
 			}
 			if (this.settings.openConsole){
-				this.addTitleLivePreview(el, "💻",srcPath,"console");
+				this.addTitleLivePreview(newDiv, "💻",srcPath,"console");
 			}
 			if (this.settings.openExplorer){
-				this.addTitleLivePreview(el,"📂", srcPath,"explorer");
+				this.addTitleLivePreview(newDiv,"📂", srcPath,"explorer");
 			}
 			if (this.settings.openTotalCmd){
-				this.addTitleLivePreview(el,"💾", srcPath,"totalcmd");
+				this.addTitleLivePreview(newDiv,"💾", srcPath,"totalcmd");
 			}
 			
 			//this.addTitleLivePreview(el, title,srcPath);
 		
-
+			pre.appendChild(newDiv);
 			el.className += ' embed-code-file-plugin';
 		});
 	}
 
-	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string, command: string,link:boolean = true) {
+	addTitleLivePreview(div: HTMLElement, title: string, srcPath: string, command: string,link:boolean = true) {
 		
 		const path = require('path'); // Make sure to import the path module
 		const { exec } = require("child_process");
 
 
+		/*
 		const codeElm = el.querySelector('pre > code');
 		if (!codeElm) { return }
 		const pre = codeElm.parentElement as HTMLPreElement;
-
+		*/
 		
 		var run = ()=>{};
 		//it's a webpage
@@ -295,7 +303,7 @@ export default class EmbedCodeFile extends Plugin {
 		// Add the clickable div to the pre element
 		 //pre.style.position = "relative";  // Make sure the parent is relative
 
-		pre.prepend(titleDiv);
+		div.insertBefore(titleDiv);
 		//this.insertTitlePreElement(pre, title)
 
 		}
