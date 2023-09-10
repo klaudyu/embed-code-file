@@ -9,6 +9,8 @@ export interface EmbedCodeFileSettings {
 	showLineNumbers: boolean;  
 	openConsole:boolean;
 	openExplorer:boolean;
+	openObsidian:boolean;
+	openDefaultApp: boolean;
 }
 
 
@@ -18,7 +20,10 @@ export const DEFAULT_SETTINGS: EmbedCodeFileSettings = {
 	titleFontColor: "",
 	showLineNumbers: true,  // Default value
 	openConsole: false,  // Default value
-	openExplorer: false 
+	openExplorer: false,
+	openObsidian: false,
+	openDefaultApp: false
+	
 }
 
 
@@ -93,6 +98,26 @@ export class EmbedCodeFileSettingTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.openExplorer)
 					.onChange(async (value) => {
 						this.plugin.settings.openExplorer = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(containerEl)
+			.setName('Open in Obsidian')
+			.setDesc('open the file through obsidian. If a supporting plugin is installed (e.g. Custom File Extension Settings), it will open in Obsidian')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.openObsidian)
+					.onChange(async (value) => {
+						this.plugin.settings.openObsidian = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(containerEl)
+			.setName('Open in the default app')
+			.setDesc('Open the file with the default app.')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.openDefaultApp)
+					.onChange(async (value) => {
+						this.plugin.settings.openDefaultApp = value;
 						await this.plugin.saveSettings();
 					});
 			});

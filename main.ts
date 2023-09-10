@@ -198,7 +198,7 @@ export default class EmbedCodeFile extends Plugin {
 				// Open local file in Obsidian
 				const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
 				if (fileToOpen instanceof TFile) {
-				  this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
+				  if (this.settings.openObsidian){this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);}
 				  this.openFolderInExplorer(fileToOpen)
 				}
 			}
@@ -216,7 +216,7 @@ export default class EmbedCodeFile extends Plugin {
 		const { exec } = require("child_process");
 	  // Get the absolute path of the folder
 	  const filePath = file.path;
-	  const fileAbsolutePath = this.getAbsolutePathOfFolder(filePath); // Renamed to avoid conflict
+	  const fileAbsolutePath = this.getAbsolutePathOfFolder(filePath); 
 	  
 	  // Get the directory name using Node.js path module
 	  const folderPath = path.dirname(fileAbsolutePath);
@@ -241,6 +241,12 @@ export default class EmbedCodeFile extends Plugin {
 				  console.log(`stderr: ${stderr}`);
 				});
 			}
+		    if (this.settings.openDefaultApp){
+				exec(`start "" "${fileAbsolutePath}"`);
+				//window.require('electron').shell.openPath(fileAbsolutePath);
+
+			}
+
 	  } else if (process.platform === 'darwin') {
 		// For macOS
 		if (this.settings.openExplorer){
