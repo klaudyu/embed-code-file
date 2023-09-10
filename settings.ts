@@ -11,6 +11,7 @@ export interface EmbedCodeFileSettings {
 	openExplorer:boolean;
 	openObsidian:boolean;
 	openDefaultApp: boolean;
+	openTotalCmd: boolean;
 }
 
 
@@ -22,7 +23,8 @@ export const DEFAULT_SETTINGS: EmbedCodeFileSettings = {
 	openConsole: false,  // Default value
 	openExplorer: false,
 	openObsidian: false,
-	openDefaultApp: false
+	openDefaultApp: false,
+	openTotalCmd: false
 	
 }
 
@@ -118,6 +120,16 @@ export class EmbedCodeFileSettingTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.openDefaultApp)
 					.onChange(async (value) => {
 						this.plugin.settings.openDefaultApp = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(containerEl)
+			.setName('Open in total commander')
+			.setDesc('Open the file with total commander.')
+			.addToggle(toggle => {
+				toggle.setValue(this.plugin.settings.openTotalCmd)
+					.onChange(async (value) => {
+						this.plugin.settings.openTotalCmd = value;
 						await this.plugin.saveSettings();
 					});
 			});

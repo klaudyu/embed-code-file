@@ -169,6 +169,9 @@ export default class EmbedCodeFile extends Plugin {
 			if (this.settings.openExplorer){
 				this.addTitleLivePreview(el,"📂", srcPath,"explorer");
 			}
+			if (this.settings.openTotalCmd){
+				this.addTitleLivePreview(el,"💾", srcPath,"totalcmd");
+			}
 			
 			//this.addTitleLivePreview(el, title,srcPath);
 		
@@ -193,6 +196,7 @@ export default class EmbedCodeFile extends Plugin {
 		if (srcPath.startsWith('http://') || srcPath.startsWith('https://')){
 			switch (command){
 				case "console":
+				case "totalcmd":
 					return;
 				default:
 					let url = srcPath.startsWith('https://raw.githubusercontent')?this.convertRawToRepoURL(srcPath):srcPath
@@ -247,6 +251,12 @@ export default class EmbedCodeFile extends Plugin {
 					run = () =>{exec(`open -R "${fileAbsolutePath}"`)};break;
 				  default: // Linux
 					run = () => {exec(`nautilus "${filePath}"`)};break;
+				}
+				break;
+			  //open in totalcmd
+			  case "totalcmd":
+				if (process.platform == "win32"){
+					run = () => {exec(`start totalcmd "/O" "L=${fileAbsolutePath}"`);}
 				}
 				break;
 			}

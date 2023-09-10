@@ -56,3 +56,7 @@ pre[class*="language-"]{
 	font-size:1.1em;	
 
 }
+
+.obsidian-embed-code-title.link.totalcmd{
+	  right: 6em;
+}
