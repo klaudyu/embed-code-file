@@ -103,7 +103,7 @@ export class EmbedCodeFileSettingTab extends PluginSettingTab {
 			});
 		new Setting(containerEl)
 			.setName('Open in Obsidian')
-			.setDesc('open the file through obsidian. If a supporting plugin is installed (e.g. Custom File Extension Settings), it will open in Obsidian')
+			.setDesc('open the file through obsidian. If a supporting plugin is installed (e.g. Plain Text), it will open it in Obsidian')
 			.addToggle(toggle => {
 				toggle.setValue(this.plugin.settings.openObsidian)
 					.onChange(async (value) => {

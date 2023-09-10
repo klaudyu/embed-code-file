@@ -12,9 +12,9 @@ export default class EmbedCodeFile extends Plugin {
 
 		this.addSettingTab(new EmbedCodeFileSettingTab(this.app, this));
 
-		//this.registerMarkdownPostProcessor((element, context) => {
-		//	this.addTitle(element, context);
-		//});
+		this.registerMarkdownPostProcessor((element, context) => {
+			this.addTitle(element, context);
+		});
 
 		// live preview renderers
 		const supportedLanguages = this.settings.includedLanguages.split(",")
@@ -22,6 +22,29 @@ export default class EmbedCodeFile extends Plugin {
 			console.log(`registering renderer for ${l}`)
 			this.registerRenderer(l)
 		});
+		
+		
+		const activeLeaf = this.app.workspace.activeLeaf;
+
+		// Check if activeLeaf and view exist
+		if (activeLeaf?.view) {
+		  // Type assertion to treat view as any type to access file
+		  const activeFile = (activeLeaf.view as any).file as TFile;
+
+		  // Check if activeFile exists
+		  if (activeFile) {
+			// Close the active file
+			activeLeaf.detach();
+
+			// Reopen the file after a short delay
+			setTimeout(() => {
+			  this.app.workspace.openLinkText(activeFile.basename, activeFile.path, true);
+			}, 100); // Adjust the delay as needed
+		  }
+		}
+
+
+		
 	}
 
 	async loadSettings() {
@@ -125,56 +148,176 @@ export default class EmbedCodeFile extends Plugin {
 				// Replace the innerHTML of the code block with the wrapped highlighted code
 				codeBlock.innerHTML = wrappedHighlightedCode;
 			}
+			
+			const titleaslink=this.settings.openDefaultApp
+			this.addTitleLivePreview(el,title, srcPath,"open","top-left", ".3em",".3em",titleaslink);
 
-			this.addTitleLivePreview(el, title,srcPath);
+			if(this.settings.openObsidian){
+				this.addTitleLivePreview(el,"[obsidian]", srcPath,"obsidian","bottom-right", "7em","1em",);
+			}
+			if (this.settings.openConsole){
+				this.addTitleLivePreview(el, "[console]",srcPath,"console","bottom-right", "1em","1em");
+			}
+			if (this.settings.openExplorer){
+				this.addTitleLivePreview(el,"[folder]", srcPath,"explorer","bottom-right", "14em","1em",);
+			}
+			//this.addTitleLivePreview(el, title,srcPath);
+		
+
 			el.className += ' embed-code-file-plugin';
 		});
 	}
 
-	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string) {
+	addTitleLivePreview(el: HTMLElement, title: string, srcPath: string, command: string,
+		corner: string, xOffset: string, yOffset: string,link:boolean = true) {
+		
+		const path = require('path'); // Make sure to import the path module
+		const { exec } = require("child_process");
+
+
 		const codeElm = el.querySelector('pre > code');
 		if (!codeElm) { return }
 		const pre = codeElm.parentElement as HTMLPreElement;
 
+		
+		var run = ()=>{};
+		//it's a webpage
+		if (srcPath.startsWith('http://') || srcPath.startsWith('https://')){
+			switch (command){
+				case "console":
+					return;
+				default:
+					let url = srcPath.startsWith('https://raw.githubusercontent')?this.convertRawToRepoURL(srcPath):srcPath
+					run=()=>{require('electron').shell.openExternal(url)};
+			}
+		//it's a file
+		}else{
+			const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
+			if(!fileToOpen){return }
+			const filePath = fileToOpen.path;
+
+			const fileAbsolutePath = getAbsolutePathOfFolder(filePath); 
+			const folderPath = path.dirname(fileAbsolutePath);
+			
+			switch (command) {
+			  // Open in default app
+			  case "open":
+				switch (process.platform) {
+				  case "win32":
+					run = () => {exec(`start "" "${fileAbsolutePath}"`)};break;
+				  case "darwin":
+					run = () => {exec(`open "${fileAbsolutePath}"`)};break;
+				  default: // Linux
+					run = () => {exec(`xdg-open "${fileAbsolutePath}"`)};break;
+				}
+				break;
+				
+			  //open in obsidian
+			  case "obsidian":
+				run = () => this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);
+				break;
+				
+			  // Open in console
+			  case "console":			
+				switch (process.platform) {
+				  case "win32":
+					const driveLetter = folderPath.charAt(0);
+					run = () => {exec(`start cmd.exe /K "${driveLetter}: && cd \"${folderPath}\" && powershell.exe"`)};break;
+				  case "darwin":
+					run =  () => {exec(`open -a Terminal "${folderPath}"`)};break;
+				  default: // Linux
+					run = () => {exec(`gnome-terminal --working-directory=${folderPath}`)};break;
+				}
+				break;
+
+			  // Open in explorer
+			  case "explorer":
+				switch (process.platform) {
+				  case "win32":
+					run = () => {exec(`explorer /select,"${fileAbsolutePath}"`)};break;
+				  case "darwin":
+					run = () =>{exec(`open -R "${fileAbsolutePath}"`)};break;
+				  default: // Linux
+					run = () => {exec(`nautilus "${filePath}"`)};break;
+				}
+				break;
+			}
+		}
+
+
+
+
 		// Create a clickable div element
-		const titleDiv = document.createElement("span");
+		const titleDiv = document.createElement("pre");
 		titleDiv.textContent = title;
-		titleDiv.className = "obsidian-embed-code-file";
-		titleDiv.style.color = "blue";  // Mimic hyperlink color
-		titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
-		titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
+		titleDiv.className = "obsidian-embed-code-title";
+
+		// Set CSS styles
+
+		switch (corner) {
+		case "top-left":
+		  
+		  titleDiv.style.left = xOffset;
+		  titleDiv.style.top = yOffset;
+		  break;
+		case "top-right":
+		  titleDiv.style.position = "absolute";
+		  titleDiv.style.right = xOffset;
+		  titleDiv.style.top = yOffset;
+		  break;
+		case "bottom-left":
+		titleDiv.style.position = "absolute";
+		  titleDiv.style.left = xOffset;
+		  titleDiv.style.bottom = yOffset;
+		  break;
+		case "bottom-right":
+		titleDiv.style.position = "absolute";
+		  titleDiv.style.right = xOffset;
+		  titleDiv.style.bottom = yOffset;
+		  break;
+		}
+		
+		
+
 		titleDiv.style.color = this.settings.titleFontColor;
 		titleDiv.style.backgroundColor = this.settings.titleBackgroundColor;
 
-		// Add hover behavior
-		titleDiv.addEventListener("mouseover", () => {
-			titleDiv.style.textDecoration = "none";  // Remove underline on hover
-		});
-		titleDiv.addEventListener("mouseout", () => {
-			titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
-		});
+		if(link){
+			titleDiv.style.textDecoration = "underline";  // Mimic hyperlink underline
+			titleDiv.style.cursor = "pointer";  // Change cursor to pointer on hover
+			// Add hover behavior
+			titleDiv.addEventListener("mouseover", () => {
+				titleDiv.style.textDecoration = "none";  // Remove underline on hover
+			});
+			titleDiv.addEventListener("mouseout", () => {
+				titleDiv.style.textDecoration = "underline";  // Add underline back when hover ends
+			});
 
-		// Add click event to open the file in Obsidian or a URL in the browser
-		titleDiv.addEventListener("click", () => {
-		  if (srcPath.startsWith('http://') || srcPath.startsWith('https://')) {
-			// Open URL in the default web browser
-			require('electron').shell.openExternal(srcPath);
-		  } else {
-				// Open local file in Obsidian
-				const fileToOpen = this.app.vault.getAbstractFileByPath(srcPath);
-				if (fileToOpen instanceof TFile) {
-				  if (this.settings.openObsidian){this.app.workspace.openLinkText(fileToOpen.name, fileToOpen.path, false);}
-				  this.openFolderInExplorer(fileToOpen)
-				}
-			}
-		});
+			// Add click event to open the file in Obsidian or a URL in the browser
+			titleDiv.addEventListener("click", () => {
+			  if (run){run()}
+			});
+		}
 
-	// Add the clickable div to the pre element
-	pre.prepend(titleDiv);
+		// Add the clickable div to the pre element
+		 //pre.style.position = "relative";  // Make sure the parent is relative
 
-	}
+		pre.prepend(titleDiv);
+		//this.insertTitlePreElement(pre, title)
+
+		}
 	
+	convertRawToRepoURL(rawURL: string): string {
+		  // Replace 'raw.githubusercontent.com' with 'github.com'
+		  let repoURL = rawURL.replace("raw.githubusercontent.com", "github.com");
 
+		  // Insert '/blob' between the repository name and the branch name
+		  const parts = repoURL.split("/");
+		  parts.splice(5, 0, "blob");
+		  repoURL = parts.join("/");
+
+		  return repoURL;
+	}
 
 	openFolderInExplorer(file: TFile) {
 		const path = require('path'); // Make sure to import the path module
@@ -272,8 +415,8 @@ export default class EmbedCodeFile extends Plugin {
 
 	insertTitlePreElement(pre: HTMLPreElement, title: string) {
 		pre
-		.querySelectorAll(".obsidian-embed-code-file")
-		.forEach((x) => x.remove());
+			.querySelectorAll(".obsidian-embed-code-file")
+			.forEach((x) => x.remove());
 
 		let titleElement = document.createElement("pre");
 		titleElement.appendText(title);
