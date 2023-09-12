@@ -52,8 +52,58 @@ export function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[
   return {lines: extractedLines, lineNumbers: originalLineNumbers};
 }
 
+export function analyseSrcLines(str: string | string[], code: string): number[] {
+  const result: number[] = [];
 
-export function analyseSrcLines(str: string, code: string): number[] {
+  const processStr = (s: string) => {
+    s = s.replace(/\s*/g, "");
+
+    if (s.startsWith('match:')) {
+      const regexPattern = s.slice(6);
+      const regex = new RegExp(regexPattern, 'gm');
+      let match;
+      let startLine = 0;
+      let endLine = 0;
+
+      const lines = code.split('\n');
+
+      while ((match = regex.exec(code)) !== null) {
+        startLine = code.substring(0, match.index).split('\n').length;
+        endLine = startLine + match[0].split('\n').length - 1;
+
+        for (let i = startLine; i <= endLine; i++) {
+          result.push(i);
+        }
+        result.push(0); // three dots
+      }
+    } else {
+      const strs = s.split(",");
+      strs.forEach(it => {
+        if(/\w+-\w+/.test(it)) {
+          let [left, right] = it.split('-').map(Number);
+          for(let i = left; i <= right; i++) {
+            result.push(i);
+          }
+          result.push(0); // three dots
+        } else {
+          result.push(Number(it));
+          result.push(0); // three dots
+        }
+      });
+    }
+  };
+
+  if (Array.isArray(str)) {
+    str.forEach(s => processStr(s));
+  } else {
+    processStr(str);
+  }
+
+  return result;
+}
+
+
+export function __analyseSrcLines(str: string, code: string): number[] {
   str = str.replace(/\s*/g, "");
   const result: number[] = [];
 
