@@ -102,8 +102,9 @@ export default class EmbedCodeFile extends Plugin {
 
 			let srcLinesNum: number[] = []
 			const srcLinesNumString = metaYaml.LINES
+            console.log(metaYaml.LINES)
 			if (srcLinesNumString) {
-				srcLinesNum = analyseSrcLines(srcLinesNumString)
+				srcLinesNum = analyseSrcLines(srcLinesNumString,fullSrc)
 			}
 
 

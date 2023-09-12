@@ -20,10 +20,10 @@ export const DEFAULT_SETTINGS: EmbedCodeFileSettings = {
 	titleBackgroundColor: "#00000020",
 	titleFontColor: "",
 	showLineNumbers: true,  // Default value
-	openConsole: false,  // Default value
-	openExplorer: false,
+	openConsole: true,  // Default value
+	openExplorer: true,
 	openObsidian: false,
-	openDefaultApp: false,
+	openDefaultApp: true,
 	openTotalCmd: false
 	
 }

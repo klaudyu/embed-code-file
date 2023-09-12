@@ -53,8 +53,54 @@ export function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[
 }
 
 
+export function analyseSrcLines(str: string, code: string): number[] {
+  str = str.replace(/\s*/g, "");
+  const result: number[] = [];
 
-export function analyseSrcLines(str: string): number[] {
+  // Check if the string starts with 'match:'
+  if (str.startsWith('match:')) {
+    const regexPattern = str.slice(6); // Remove 'match:' prefix
+    const regex = new RegExp(regexPattern, 'gm'); // 'm' flag for multi-line
+    let match;
+    let startLine = 0;
+    let endLine = 0;
+
+    // Split the code into lines
+    const lines = code.split('\n');
+
+    // Loop through the code to find multi-line matches
+    while ((match = regex.exec(code)) !== null) {
+      startLine = code.substring(0, match.index).split('\n').length;
+      endLine = startLine + match[0].split('\n').length - 1;
+
+      for (let i = startLine; i <= endLine; i++) {
+        result.push(i);
+      }
+      result.push(0); // three dots
+    }
+  } else {
+    // Existing logic for handling ranges and individual numbers
+    const strs = str.split(",");
+    strs.forEach(it => {
+      if(/\w+-\w+/.test(it)) {
+        let [left, right] = it.split('-').map(Number);
+        for(let i = left; i <= right; i++) {
+          result.push(i);
+        }
+        result.push(0); // three dots
+      } else {
+        result.push(Number(it));
+        result.push(0); // three dots
+      }
+    });
+  }
+
+  return result;
+}
+
+
+
+export function _analyseSrcLines(str: string): number[] {
 	str = str.replace(/\s*/g, "")
 	const result: number[] = []
 
