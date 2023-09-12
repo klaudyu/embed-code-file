@@ -4,11 +4,12 @@ This plugin allows to embed code files from Obsidian vault or remote file (eg., 
 
 ## Settings
 
-The plugin include multiple language by default (`c,cpp,java,python,go,ruby,javascript,js,typescript,ts,shell,sh,bash`). You can include any needed language to the comma separated list.
+The plugin include multiple language by default (`c,cpp,java,python,go,ruby,javascript,js,typescript,ts,shell,sh,bash`). You can include any needed language to the comma separated list. Show the line numbers, and allows you to open the file in explorer, console, ...
 
 ## How to use
 
-First you need to activate the plugin from Community Plugins. Then you can embed the code as follow:
+create a folder called embed-code-file-kla in your plugins folder
+Copy main.js styles.css manifest.json in the plugin folder
 
 ````yaml
 ```embed-<some-language>
@@ -17,6 +18,22 @@ LINES: "<some-line-number>,<other-number>,...,<some-range>"
 TITLE: "<some-title>"
 ```
 ````
+or
+````yaml
+```embed-<some-language>
+PATH: "vault://<some-path-to-code-file>" or "http[s]://<some-path-to-remote-file>"
+TITLE: "<some-title>"
+LINES:
+	- <some-line-number>
+	- <other-number>
+	...
+	- <some-range>
+	- match:<some regex pattern>
+
+```
+````
+
+
 
 Examples:
 
@@ -25,7 +42,11 @@ Examples:
 ````yaml
 ```embed-cpp
 PATH: "vault://Code/main.cpp"
-LINES: "2,9,30-40,100-122,150"
+LINES:
+	- "2,9,30-40,100-122,150"
+	- match:void\s*loop.*\n(.*\n){1,}?\s?}\s*$
+	- match:^#include
+	- 10-15
 TITLE: "Some title"
 ```
 ````

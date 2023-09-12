@@ -1,6 +1,6 @@
 import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, MarkdownView, parseYaml, requestUrl,Platform,normalizePath} from 'obsidian';
 import { EmbedCodeFileSettings, EmbedCodeFileSettingTab, DEFAULT_SETTINGS} from "./settings";
-import { analyseSrcLines, extractSrcLines,extractSrcLinesWithNumbers,getAbsolutePathOfFolder} from "./utils";
+import { analyseSrcLines, extractSrcLinesWithNumbers,getAbsolutePathOfFolder} from "./utils";
 
 
 
