@@ -24,8 +24,8 @@ export function extractSrcLinesWithNumbers(fullSrc: string, srcLinesNum: number[
   let prevLineNum = 0;
 
   const addEllipsis = () => {
-    extractedLines.push('....', '');
-    originalLineNumbers.push(-1, -1);
+    extractedLines.push('....');
+    originalLineNumbers.push(-1);
   };
 
   if (!srcLinesNum.includes(1)) {

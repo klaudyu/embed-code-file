@@ -45,6 +45,7 @@ PATH: "vault://Code/main.cpp"
 LINES:
 	- "2,9,30-40,100-122,150"
 	- match:void\s*loop.*\n(.*\n){1,}?\s?}\s*$
+	- match:setup(.*\r?\n){1,}?}
 	- match:^#include
 	- 10-15
 TITLE: "Some title"
