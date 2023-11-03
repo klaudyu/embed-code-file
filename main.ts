@@ -1,6 +1,9 @@
 import { Plugin, MarkdownRenderer, TFile, MarkdownPostProcessorContext, MarkdownView, parseYaml, requestUrl,Platform,normalizePath} from 'obsidian';
 import { EmbedCodeFileSettings, EmbedCodeFileSettingTab, DEFAULT_SETTINGS} from "./settings";
 import { analyseSrcLines, extractSrcLinesWithNumbers,getAbsolutePathOfFolder} from "./utils";
+import { debug } from 'console';
+//import { debug } from 'console';
+//const glob = require('glob');
 
 
 
@@ -55,6 +58,13 @@ export default class EmbedCodeFile extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+    async getFilePath(pattern){
+        const regex = new RegExp(pattern);
+        const files = this.app.vault.getFiles().filter(file => regex.test(file.path));
+        return files[0]; // This will be undefined if the file wasn't found
+
+    }
+
 	async registerRenderer(lang: string) {
 		this.registerMarkdownCodeBlockProcessor(`embed-${lang}`, async (meta, el, ctx) => {
 			let fullSrc = ""
@@ -86,11 +96,14 @@ export default class EmbedCodeFile extends Plugin {
 			} else if (srcPath.startsWith("vault://")) {
 				srcPath = srcPath.replace(/^(vault:\/\/)/,'');
 
+                //debugger
+                srcPath=(await this.getFilePath(srcPath)).path
+
 				const tFile = app.vault.getAbstractFileByPath(srcPath)
 				if (tFile instanceof TFile) {
-					fullSrc = await app.vault.read(tFile)
+					fullSrc = await app.vault.read(tFile) 
 				} else {
-					const errMsg = `\`ERROR: could't read file '${srcPath}'\``
+					const errMsg = `\`ERROR: could'tnn read file '${srcPath}'\``
 					await MarkdownRenderer.renderMarkdown(errMsg, el, '', this)
 					return
 				}
